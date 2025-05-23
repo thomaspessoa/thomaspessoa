@@ -1,0 +1,112 @@
+{% extends 'layout.html' %}
+
+{% block title %}Painel do Motorista - Rastreador de Ônibus Pro{% endblock %} {# Traduzido #}
+
+{% block content %}
+    <h2>Painel do Motorista</h2> {# Traduzido #}
+    <p>Bem-vindo(a), {{ current_user.username }} (Motorista)!</p> {# Traduzido #}
+    
+    {# Mensagens flash são tratadas no layout.html #}
+
+    <hr>
+
+    {% if active_trip and active_trip.status == 'active' %}
+        <div class="trip-info">
+            <h3>Viagem Ativa Atual</h3> {# Traduzido #}
+            <p><strong>ID:</strong> {{ active_trip.id }}</p>
+            <p><strong>Detalhes:</strong> {{ active_trip.schedule }}</p> {# Mantido, pois o conteúdo é dinâmico #}
+            <p><strong>Iniciada em:</strong> {{ active_trip.start_time.strftime('%Y-%m-%d %H:%M:%S') }} UTC</p> {# Traduzido #}
+            <p><strong>Status:</strong> <span class="status-active">{{ active_trip.status }}</span></p> {# Status pode ser traduzido no backend se necessário, ou manter em inglês se for um valor de enum #}
+            <div id="location-status">Rastreando localização...</div> {# Traduzido #}
+        </div>
+        
+        <hr style="margin-top: 30px; margin-bottom: 30px;">
+
+        <div class="end-trip-container" style="margin-top: 20px;">
+            <form method="POST" action="{{ url_for('end_trip') }}" style="display: inline;">
+                <button type="submit">Finalizar Viagem</button> {# Traduzido #}
+            </form>
+        </div>
+    {% else %}
+        <div class="new-trip-form">
+            <h3>Iniciar Nova Viagem</h3> {# Traduzido #}
+            <form method="POST" action="{{ url_for('start_trip') }}">
+                <div>
+                    <label for="destino">Destino:</label>
+                    <input type="text" id="destino" name="destino" required size="50">
+                </div>
+                <div>
+                    <label for="horario_viagem">Horário da Viagem:</label>
+                    <input type="text" id="horario_viagem" name="horario_viagem" required size="50" placeholder="Ex: 14:30, Imediato, etc."> {# Traduzido placeholder #}
+                </div>
+                <div>
+                    <button type="submit">Iniciar Viagem</button> {# Traduzido #}
+                </div>
+            </form>
+        </div>
+    {% endif %}
+
+    <div class="logout-link-container" style="margin-top: 30px;">
+        <a href="{{ url_for('logout') }}" class="button-link">Sair</a> {# Mantido "Sair" de antes #}
+    </div>
+{% endblock %}
+
+{% block scripts_extra %}
+    {% if active_trip and active_trip.status == 'active' %}
+    <script>
+        let watchId = null;
+        const locationStatusEl = document.getElementById('location-status');
+
+        function sendLocation(latitude, longitude) {
+            fetch("{{ url_for('update_location') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ latitude: latitude, longitude: longitude })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Atualização de localização:', data); // Traduzido comentário console
+                if (data.status === 'success') {
+                    if (locationStatusEl) locationStatusEl.textContent = `Localização atualizada: ${latitude.toFixed(5)}, ${longitude.toFixed(5)} às ${new Date().toLocaleTimeString()}`; // Traduzido
+                } else {
+                    if (locationStatusEl) locationStatusEl.textContent = `Erro ao atualizar localização: ${data.message}`; // Traduzido
+                    console.error('Erro do servidor:', data.message); // Traduzido comentário console
+                }
+            })
+            .catch(error => {
+                console.error('Erro de fetch ao atualizar localização:', error); // Traduzido comentário console
+                if (locationStatusEl) locationStatusEl.textContent = 'Erro ao enviar dados de localização.'; // Traduzido
+            });
+        }
+
+        if (navigator.geolocation) {
+            watchId = navigator.geolocation.watchPosition(
+                (position) => {
+                    const lat = position.coords.latitude;
+                    const lon = position.coords.longitude;
+                    console.log(`Observando localização: Lat: ${lat}, Lon: ${lon}`); // Traduzido comentário console
+                    sendLocation(lat, lon);
+                },
+                (error) => {
+                    console.error("Erro ao obter localização:", error); // Traduzido comentário console
+                    if (locationStatusEl) {
+                        locationStatusEl.textContent = `Erro ao obter localização: ${error.message}`; // Traduzido
+                    }
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0
+                }
+            );
+            console.log("Monitoramento de geolocalização iniciado com ID:", watchId); // Traduzido comentário console
+            if (locationStatusEl) locationStatusEl.textContent = "Rastreamento de geolocalização iniciado. Aguardando primeira atualização..."; // Traduzido
+        } else {
+            console.error("Geolocalização não é suportada por este navegador."); // Traduzido comentário console
+            if (locationStatusEl) locationStatusEl.textContent = "Geolocalização não é suportada por este navegador."; // Traduzido
+        }
+    </script>
+    {% endif %}
+{% endblock %}

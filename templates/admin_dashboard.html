@@ -1,0 +1,161 @@
+{% extends 'layout.html' %}
+
+{% block title %}Painel do Administrador - Rastreador de Ônibus Pro{% endblock %} {# Traduzido #}
+
+{% block head_extra %}
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+{% endblock %}
+
+{% block content %}
+    <h2>Painel do Administrador</h2> {# Traduzido #}
+    <p>Bem-vindo(a), {{ current_user.username }} (Admin)!</p> {# Traduzido #}
+
+    {# Mensagens flash são tratadas no layout.html #}
+
+    <hr>
+    <h3>Viagens Ativas - Visualização no Mapa</h3> {# Traduzido #}
+    <div id="map"></div>
+
+    <hr>
+    <h3>Viagens Ativas - Visualização em Lista</h3> {# Traduzido #}
+    {% if active_trips %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Motorista</th> {# Traduzido #}
+                    <th>Detalhes da Viagem</th> {# Traduzido (anteriormente "Schedule") #}
+                    <th>Horário de Início (UTC)</th> {# Traduzido #}
+                    <th>Status</th>
+                    <th>Latitude</th>
+                    <th>Longitude</th>
+                    <th>Última Atualização de Localização</th> {# Traduzido #}
+                </tr>
+            </thead>
+            <tbody>
+                {% for trip in active_trips %}
+                <tr>
+                    <td>{{ trip.driver.username if trip.driver else 'N/D' }}</td> {# Traduzido N/A #}
+                    <td>{{ trip.schedule }}</td> {# Mantido, pois o conteúdo é dinâmico e já formatado #}
+                    <td>{{ trip.start_time.strftime('%Y-%m-%d %H:%M:%S') if trip.start_time else 'N/D' }}</td> {# Traduzido N/A #}
+                    <td>{{ trip.status }}</td> {# Manter em inglês se for valor de enum, ou traduzir no backend #}
+                    <td>{{ "%.5f"|format(trip.current_latitude) if trip.current_latitude is not none else 'N/D' }}</td> {# Traduzido N/A #}
+                    <td>{{ "%.5f"|format(trip.current_longitude) if trip.current_longitude is not none else 'N/D' }}</td> {# Traduzido N/A #}
+                    <td>{{ trip.last_location_update.strftime('%Y-%m-%d %H:%M:%S') if trip.last_location_update else 'N/D' }}</td> {# Traduzido N/A #}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p class="no-trips">Nenhum ônibus em rota atualmente.</p> {# Traduzido #}
+    {% endif %}
+
+    <div class="logout-link-container">
+        <a href="{{ url_for('logout') }}" class="button-link">Sair</a> {# Mantido "Sair" de antes #}
+    </div>
+{% endblock %}
+
+{% block scripts_extra %}
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script>
+        const defaultLat = 39.9526; // Filadélfia
+        const defaultLon = -75.1652;
+        const defaultZoom = 10; // Nível de zoom para visualização padrão
+        const userZoom = 13;    // Nível de zoom para localização do usuário
+
+        let map; // Declarar variável do mapa em um escopo mais amplo
+        let busMarkers = {}; // Para armazenar marcadores, indexados por trip_id
+
+        // Função para buscar localizações de ônibus e atualizar marcadores
+        async function fetchBusLocations() {
+            if (!map) { // Garantir que o mapa está inicializado
+                console.log("Mapa ainda não inicializado. Pulando fetchBusLocations."); // Traduzido
+                return;
+            }
+            try {
+                const response = await fetch("{{ url_for('active_buses_locations') }}");
+                if (!response.ok) {
+                    console.error('Falha ao buscar localizações dos ônibus:', response.status, await response.text()); // Traduzido
+                    return;
+                }
+                const buses = await response.json();
+
+                let displayedTripIds = Object.keys(busMarkers).map(Number);
+                let incomingTripIds = buses.map(bus => bus.trip_id);
+
+                // Remover marcadores de viagens que não estão maisativas
+                displayedTripIds.forEach(tripId => {
+                    if (!incomingTripIds.includes(tripId)) {
+                        if (busMarkers[tripId]) {
+                            map.removeLayer(busMarkers[tripId]);
+                            delete busMarkers[tripId];
+                            console.log(`Marcador removido para trip ID: ${tripId}`); // Traduzido
+                        }
+                    }
+                });
+
+                buses.forEach(bus => {
+                    if (bus.latitude === null || bus.longitude === null) {
+                        console.log(`Pulando ônibus ${bus.trip_id} devido à localização nula.`); // Traduzido
+                        if (busMarkers[bus.trip_id]) {
+                             map.removeLayer(busMarkers[bus.trip_id]);
+                             delete busMarkers[bus.trip_id];
+                        }
+                        return; 
+                    }
+
+                    // Traduzido conteúdo do popup
+                    const popupContent = `<b>Motorista:</b> ${bus.driver_username}<br>
+                                          <b>ID da Viagem:</b> ${bus.trip_id}<br>
+                                          <b>Detalhes:</b> ${bus.schedule || 'N/D'}<br> 
+                                          <b>Última Atualização:</b> ${bus.last_update}`;
+                    
+                    if (busMarkers[bus.trip_id]) {
+                        busMarkers[bus.trip_id].setLatLng([bus.latitude, bus.longitude])
+                                             .setPopupContent(popupContent);
+                    } else {
+                        busMarkers[bus.trip_id] = L.marker([bus.latitude, bus.longitude])
+                                                  .addTo(map)
+                                                  .bindPopup(popupContent);
+                    }
+                });
+            } catch (error) {
+                console.error('Erro ao buscar ou processar localizações dos ônibus:', error); // Traduzido
+            }
+        }
+
+        // Função para inicializar o mapa e começar a buscar localizações de ônibus
+        function initMap(lat, lon, zoom) {
+            map = L.map('map').setView([lat, lon], zoom);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; Contribuidores do <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' // Traduzido
+            }).addTo(map);
+
+            // Começar a buscar localizações de ônibus
+            fetchBusLocations(); 
+            setInterval(fetchBusLocations, 10000); // Buscar a cada 10 segundos
+            console.log(`Mapa inicializado em [${lat}, ${lon}] com zoom ${zoom}.`); // Traduzido
+        }
+
+        // Tentar obter a localização atual do administrador
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    console.log("Localização do administrador obtida:", position.coords.latitude, position.coords.longitude); // Traduzido
+                    initMap(position.coords.latitude, position.coords.longitude, userZoom);
+                },
+                (error) => {
+                    console.warn(`Não foi possível obter a localização do administrador (Erro ${error.code}: ${error.message}), usando padrão.`); // Traduzido
+                    initMap(defaultLat, defaultLon, defaultZoom);
+                },
+                {
+                    enableHighAccuracy: false, 
+                    timeout: 8000,        
+                    maximumAge: 0          
+                }
+            );
+        } else {
+            console.warn("Geolocalização não é suportada por este navegador, usando localização padrão."); // Traduzido
+            initMap(defaultLat, defaultLon, defaultZoom);
+        }
+    </script>
+{% endblock %}
