@@ -1,0 +1,103 @@
+{% extends 'layout.html' %}
+
+{% block title %}Driver Dashboard - Bus Tracker Pro{% endblock %}
+
+{% block content %}
+    <h2>Driver Dashboard</h2>
+    <p>Welcome, {{ current_user.username }} (Driver)!</p>
+    
+    {# Flashed messages are handled in layout.html #}
+
+    <hr>
+
+    {% if active_trip and active_trip.status == 'active' %}
+        <div class="trip-info">
+            <h3>Current Active Trip</h3>
+            <p><strong>ID:</strong> {{ active_trip.id }}</p>
+            <p><strong>Schedule:</strong> {{ active_trip.schedule }}</p>
+            <p><strong>Started At:</strong> {{ active_trip.start_time.strftime('%Y-%m-%d %H:%M:%S') }} UTC</p>
+            <p><strong>Status:</strong> <span class="status-active">{{ active_trip.status }}</span></p>
+            <div id="location-status">Tracking location...</div>
+            <form method="POST" action="{{ url_for('end_trip') }}" style="display: inline; margin-top: 10px;">
+                <button type="submit">End Trip</button>
+            </form>
+        </div>
+    {% else %}
+        <div class="new-trip-form">
+            <h3>Start a New Trip</h3>
+            <form method="POST" action="{{ url_for('start_trip') }}">
+                <div>
+                    <label for="schedule">Schedule/Destination:</label>
+                    <input type="text" id="schedule" name="schedule" required size="50">
+                </div>
+                <div>
+                    <button type="submit">Start Trip</button>
+                </div>
+            </form>
+        </div>
+    {% endif %}
+
+    <div class="logout-link-container">
+        <a href="{{ url_for('logout') }}" class="button-link">Logout</a>
+    </div>
+{% endblock %}
+
+{% block scripts_extra %}
+    {% if active_trip and active_trip.status == 'active' %}
+    <script>
+        let watchId = null;
+        const locationStatusEl = document.getElementById('location-status');
+
+        function sendLocation(latitude, longitude) {
+            fetch("{{ url_for('update_location') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ latitude: latitude, longitude: longitude })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Location update:', data);
+                if (data.status === 'success') {
+                    if (locationStatusEl) locationStatusEl.textContent = `Location updated: ${latitude.toFixed(5)}, ${longitude.toFixed(5)} at ${new Date().toLocaleTimeString()}`;
+                } else {
+                    if (locationStatusEl) locationStatusEl.textContent = `Error updating location: ${data.message}`;
+                    console.error('Error from server:', data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Fetch error updating location:', error);
+                if (locationStatusEl) locationStatusEl.textContent = 'Error sending location data.';
+            });
+        }
+
+        if (navigator.geolocation) {
+            watchId = navigator.geolocation.watchPosition(
+                (position) => {
+                    const lat = position.coords.latitude;
+                    const lon = position.coords.longitude;
+                    console.log(`Watching location: Lat: ${lat}, Lon: ${lon}`);
+                    sendLocation(lat, lon);
+                },
+                (error) => {
+                    console.error("Error getting location:", error);
+                    if (locationStatusEl) {
+                        locationStatusEl.textContent = `Error getting location: ${error.message}`;
+                    }
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0
+                }
+            );
+            console.log("Geolocation watch started with ID:", watchId);
+            if (locationStatusEl) locationStatusEl.textContent = "Geolocation tracking initiated. Waiting for first update...";
+        } else {
+            console.error("Geolocation is not supported by this browser.");
+            if (locationStatusEl) locationStatusEl.textContent = "Geolocation is not supported by this browser.";
+        }
+    </script>
+    {% endif %}
+{% endblock %}

@@ -1,0 +1,120 @@
+{% extends 'layout.html' %}
+
+{% block title %}Admin Dashboard - Bus Tracker Pro{% endblock %}
+
+{% block head_extra %}
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+{% endblock %}
+
+{% block content %}
+    <h2>Admin Dashboard</h2>
+    <p>Welcome, {{ current_user.username }} (Admin)!</p>
+
+    {# Flashed messages are handled in layout.html #}
+
+    <hr>
+    <h3>Active Trips - Map View</h3>
+    <div id="map"></div> {# Styles for #map are in style.css #}
+
+    <hr>
+    <h3>Active Trips - List View</h3>
+    {% if active_trips %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Driver</th>
+                    <th>Schedule</th>
+                    <th>Start Time (UTC)</th>
+                    <th>Status</th>
+                    <th>Latitude</th>
+                    <th>Longitude</th>
+                    <th>Last Location Update</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for trip in active_trips %}
+                <tr>
+                    <td>{{ trip.driver.username if trip.driver else 'N/A' }}</td>
+                    <td>{{ trip.schedule }}</td>
+                    <td>{{ trip.start_time.strftime('%Y-%m-%d %H:%M:%S') if trip.start_time else 'N/A' }}</td>
+                    <td>{{ trip.status }}</td>
+                    <td>{{ "%.5f"|format(trip.current_latitude) if trip.current_latitude is not none else 'N/A' }}</td>
+                    <td>{{ "%.5f"|format(trip.current_longitude) if trip.current_longitude is not none else 'N/A' }}</td>
+                    <td>{{ trip.last_location_update.strftime('%Y-%m-%d %H:%M:%S') if trip.last_location_update else 'N/A' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p class="no-trips">No buses currently on route.</p>
+    {% endif %}
+
+    <div class="logout-link-container">
+        <a href="{{ url_for('logout') }}" class="button-link">Logout</a>
+    </div>
+{% endblock %}
+
+{% block scripts_extra %}
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script>
+        const map = L.map('map').setView([39.9526, -75.1652], 10); // Centered on Philadelphia, PA
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        let busMarkers = {}; // To store markers, keyed by trip_id
+
+        async function fetchBusLocations() {
+            try {
+                const response = await fetch("{{ url_for('active_buses_locations') }}");
+                if (!response.ok) {
+                    console.error('Failed to fetch bus locations:', response.status, await response.text());
+                    return;
+                }
+                const buses = await response.json();
+
+                let displayedTripIds = Object.keys(busMarkers).map(Number);
+                let incomingTripIds = buses.map(bus => bus.trip_id);
+
+                displayedTripIds.forEach(tripId => {
+                    if (!incomingTripIds.includes(tripId)) {
+                        if (busMarkers[tripId]) {
+                            map.removeLayer(busMarkers[tripId]);
+                            delete busMarkers[tripId];
+                            console.log(`Removed marker for trip ID: ${tripId}`);
+                        }
+                    }
+                });
+
+                buses.forEach(bus => {
+                    if (bus.latitude === null || bus.longitude === null) {
+                        console.log(`Skipping bus ${bus.trip_id} due to null location.`);
+                        if (busMarkers[bus.trip_id]) {
+                             map.removeLayer(busMarkers[bus.trip_id]);
+                             delete busMarkers[bus.trip_id];
+                        }
+                        return; 
+                    }
+
+                    const popupContent = `<b>Driver:</b> ${bus.driver_username}<br>
+                                          <b>Trip ID:</b> ${bus.trip_id}<br>
+                                          <b>Schedule:</b> ${bus.schedule || 'N/A'}<br>
+                                          <b>Last Update:</b> ${bus.last_update}`;
+                    
+                    if (busMarkers[bus.trip_id]) {
+                        busMarkers[bus.trip_id].setLatLng([bus.latitude, bus.longitude])
+                                             .setPopupContent(popupContent);
+                    } else {
+                        busMarkers[bus.trip_id] = L.marker([bus.latitude, bus.longitude])
+                                                  .addTo(map)
+                                                  .bindPopup(popupContent);
+                    }
+                });
+            } catch (error) {
+                console.error('Error fetching or processing bus locations:', error);
+            }
+        }
+        fetchBusLocations(); 
+        setInterval(fetchBusLocations, 10000); // Fetch every 10 seconds
+    </script>
+{% endblock %}

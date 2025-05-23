@@ -1,0 +1,21 @@
+{% extends 'layout.html' %}
+
+{% block title %}Dashboard - Bus Tracker Pro{% endblock %}
+
+{% block content %}
+    <h2>Dashboard</h2>
+    <p>Hello, {{ current_user.username }}!</p>
+    <p>Your role is: <strong>{{ current_user.role }}</strong>.</p>
+    
+    <p>Welcome to the Bus Tracker Pro application. You are logged in.</p>
+
+    {% if current_user.role == 'admin' %}
+        <p><a href="{{ url_for('admin_dashboard') }}" class="button-link">Go to Admin Dashboard</a></p>
+    {% elif current_user.role == 'driver' %}
+        <p><a href="{{ url_for('driver_dashboard') }}" class="button-link">Go to Driver Dashboard</a></p>
+    {% endif %}
+
+    <div class="logout-link-container">
+        <a href="{{ url_for('logout') }}" class="button-link">Logout</a>
+    </div>
+{% endblock %}
