@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mx-auto px-4">
+    <div class="bg-white shadow-md rounded-lg overflow-hidden">
+        <div class="md:flex">
+            <div class="md:flex-shrink-0">
+                <img class="h-full w-full object-cover md:w-96" src="{{ url_for('static', filename='uploads/' + product.image_file) }}" alt="{{ product.title }}">
+            </div>
+            <div class="p-8">
+                <div class="uppercase tracking-wide text-sm text-indigo-500 font-semibold">{{ product.author.username }}</div>
+                <h1 class="block mt-1 text-lg leading-tight font-medium text-black hover:underline">{{ product.title }}</h1>
+                <p class="mt-2 text-gray-500">{{ product.description }}</p>
+                <div class="mt-4">
+                    <span class="text-gray-600">Price:</span>
+                    <span class="text-green-500 font-bold">${{ product.price }}</span>
+                </div>
+                <div class="mt-4">
+                    <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                        Contact Seller
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
