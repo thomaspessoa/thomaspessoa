@@ -2,10 +2,17 @@
 {% block content %}
     <div class="container mx-auto px-4">
         <div class="flex justify-between items-center mb-4">
-            <h1 class="text-3xl font-bold">All Listings</h1>
-            <form action="{{ url_for('main.search') }}" method="GET" class="flex">
-                <input type="text" name="query" placeholder="Search for products..." class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ml-2">Search</button>
+<h1 class="text-3xl font-bold">{{ _('All Listings') }}</h1>
+    <form action="{{ url_for('main.home') }}" method="GET" class="flex items-center">
+        <select name="city" class="shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline mr-2">
+            <option value="">{{ _('All Cities') }}</option>
+            <option value="Santa Maria">Santa Maria</option>
+            <option value="Nova Palma">Nova Palma</option>
+            <option value="Agudo">Agudo</option>
+            <option value="Restinga Seca">Restinga Seca</option>
+        </select>
+    <input type="text" name="query" placeholder="{{ _('Search for products...') }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+    <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ml-2">{{ _('Search') }}</button>
             </form>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -15,8 +22,8 @@
                         <img class="w-full h-48 object-cover" src="{{ url_for('static', filename='uploads/' + product.image_file) }}" alt="{{ product.title }}">
                         <div class="p-4">
                             <h2 class="text-lg font-bold">{{ product.title }}</h2>
-                            <p class="text-gray-600">${{ product.price }}</p>
-                            <p class="text-sm text-gray-500">by {{ product.author.username }}</p>
+                            <p class="text-gray-600">R${{ product.price }}</p>
+                    <p class="text-sm text-gray-500">{{ _('by') }} {{ product.author.username }} {{ _('in') }} {{ product.city }}</p>
                         </div>
                     </a>
                 </div>

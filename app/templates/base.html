@@ -18,13 +18,13 @@
                 <div class="flex items-center">
                     <div class="hidden md:block">
                         <div class="ml-10 flex items-baseline space-x-4">
-                            <a href="{{ url_for('main.home') }}" class="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium">Home</a>
+                            <a href="{{ url_for('main.home') }}" class="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium">{{ _('Home') }}</a>
                             {% if current_user.is_authenticated %}
-                                <a href="{{ url_for('main.new_product') }}" class="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium">New Listing</a>
-                                <a href="{{ url_for('main.logout') }}" class="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium">Logout</a>
+                                <a href="{{ url_for('main.new_product') }}" class="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium">{{ _('New Listing') }}</a>
+                                <a href="{{ url_for('main.logout') }}" class="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium">{{ _('Logout') }}</a>
                             {% else %}
-                                <a href="{{ url_for('main.login') }}" class="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium">Login</a>
-                                <a href="{{ url_for('main.register') }}" class="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium">Register</a>
+                                <a href="{{ url_for('main.login') }}" class="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium">{{ _('Login') }}</a>
+                                <a href="{{ url_for('main.register') }}" class="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium">{{ _('Register') }}</a>
                             {% endif %}
                         </div>
                     </div>

@@ -11,12 +11,16 @@
                 <h1 class="block mt-1 text-lg leading-tight font-medium text-black hover:underline">{{ product.title }}</h1>
                 <p class="mt-2 text-gray-500">{{ product.description }}</p>
                 <div class="mt-4">
-                    <span class="text-gray-600">Price:</span>
-                    <span class="text-green-500 font-bold">${{ product.price }}</span>
+                    <span class="text-gray-600">{{ _('Price') }}:</span>
+                    <span class="text-green-500 font-bold">R${{ product.price }}</span>
+                </div>
+                <div class="mt-4">
+                    <span class="text-gray-600">{{ _('City') }}:</span>
+                    <span class="text-gray-700 font-bold">{{ product.city }}</span>
                 </div>
                 <div class="mt-4">
                     <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                        Contact Seller
+                        {{ _('Contact Seller') }}
                     </button>
                 </div>
             </div>

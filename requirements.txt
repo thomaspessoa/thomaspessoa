@@ -6,3 +6,4 @@ Flask-WTF==1.0.1
 WTForms==3.0.1
 email_validator
 Werkzeug==2.3.0
+Flask-Babel==4.0.0
