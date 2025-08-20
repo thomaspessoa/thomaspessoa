@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="bg-white shadow-md rounded-lg overflow-hidden">
+    <img class="h-96 w-full object-cover" src="{{ url_for('static', filename='product_pics/' + product.image_file) }}" alt="{{ product.title }}">
+    <div class="p-6">
+        <h1 class="text-3xl font-bold text-gray-800">{{ product.title }}</h1>
+        <p class="text-2xl text-gray-600 mt-2">R$ {{ "%.2f"|format(product.price) }}</p>
+        <p class="text-sm text-gray-500 mt-2">Vendido por: <a href="#" class="text-indigo-600 hover:underline">{{ product.author.username }} (Avaliação: {{ "%.1f"|format(product.author.average_rating) }}/5)</a></p>
+        <p class="mt-4 text-gray-700">{{ product.description }}</p>
+
+        {% if product.is_sold %}
+            <p class="text-red-500 font-bold mt-4">Este produto já foi vendido.</p>
+        {% endif %}
+
+        <div class="mt-6">
+            <a href="https://wa.me/{{ product.phone_number }}" target="_blank" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                Conversar com o vendedor
+            </a>
+        </div>
+
+        {% if product.author == current_user %}
+            <div class="mt-6">
+                <a href="{{ url_for('update_product', product_id=product.id) }}" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                    Editar
+                </a>
+                <button type="button" class="ml-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500" data-toggle="modal" data-target="#deleteModal">
+                    Excluir
+                </button>
+                {% if not product.is_sold %}
+                    <form action="{{ url_for('mark_sold', product_id=product.id) }}" method="POST" class="inline">
+                        <button type="submit" class="ml-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-yellow-500 hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-400">
+                            Marcar como Vendido
+                        </button>
+                    </form>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Delete Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="deleteModalLabel">Excluir Produto?</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+        <form action="{{ url_for('delete_product', product_id=product.id) }}" method="POST">
+          <input class="btn btn-danger" type="submit" value="Excluir">
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr class="my-8">
+
+<div class="mt-6">
+    <h2 class="text-2xl font-bold text-gray-800">Avaliações do Vendedor</h2>
+    {% if product.ratings %}
+        {% for rating in product.ratings %}
+            <div class="mt-4 p-4 bg-gray-100 rounded-lg">
+                <p><strong>{{ rating.buyer.username }}</strong> - {{ rating.stars }} estrelas</p>
+                <p>{{ rating.comment }}</p>
+                <p class="text-sm text-gray-500">{{ rating.date_posted.strftime('%d/%m/%Y') }}</p>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p class="mt-4">Este vendedor ainda não tem avaliações.</p>
+    {% endif %}
+</div>
+
+{% if current_user.is_authenticated and current_user != product.author %}
+<div class="mt-6">
+    <form method="POST" action="{{ url_for('rate_seller', product_id=product.id) }}">
+        {{ form.hidden_tag() }}
+        <fieldset class="mb-4">
+            <legend class="text-2xl font-bold mb-4">Avaliar Vendedor</legend>
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2">Avaliação</label>
+                {{ form.stars(class="flex") }}
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="comment">Comentário</label>
+                {{ form.comment(class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline", rows="3") }}
+            </div>
+        </fieldset>
+        <div class="flex items-center justify-between">
+            {{ form.submit(class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline") }}
+        </div>
+    </form>
+</div>
+{% endif %}
+{% endblock content %}
