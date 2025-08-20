@@ -12,11 +12,11 @@
             <div class="flex justify-between h-16">
                 <div class="flex">
                     <div class="flex-shrink-0 flex items-center">
-                        <a href="{{ url_for('home') }}" class="text-2xl font-bold text-gray-800">Marketplace</a>
+                        <a href="{{ url_for('main.home') }}" class="text-2xl font-bold text-gray-800">DeuBrick</a>
                     </div>
                 </div>
                 <div class="flex-grow flex items-center justify-center">
-                    <form method="GET" action="{{ url_for('home') }}" class="w-full max-w-lg">
+                    <form method="GET" action="{{ url_for('main.home') }}" class="w-full max-w-lg">
                         <div class="flex items-center border-b-2 border-indigo-500 py-2">
                             <input class="appearance-none bg-transparent border-none w-full text-gray-700 mr-3 py-1 px-2 leading-tight focus:outline-none" type="text" name="search" placeholder="Buscar produtos...">
                             <button class="flex-shrink-0 bg-indigo-500 hover:bg-indigo-700 border-indigo-500 hover:border-indigo-700 text-sm border-4 text-white py-1 px-2 rounded" type="submit">
@@ -27,13 +27,13 @@
                 </div>
                 <div class="flex items-center">
                     {% if current_user.is_authenticated %}
-                        <a href="{{ url_for('logout') }}" class="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium">Sair</a>
-                        <a href="{{ url_for('add_product') }}" class="ml-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        <a href="{{ url_for('main.logout') }}" class="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium">Sair</a>
+                        <a href="{{ url_for('main.add_product') }}" class="ml-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                             Anunciar Produto
                         </a>
                     {% else %}
-                        <a href="{{ url_for('login') }}" class="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium">Entrar</a>
-                        <a href="{{ url_for('register') }}" class="ml-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        <a href="{{ url_for('main.login') }}" class="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium">Entrar</a>
+                        <a href="{{ url_for('main.register') }}" class="ml-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                             Cadastrar
                         </a>
                     {% endif %}

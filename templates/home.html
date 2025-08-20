@@ -1,10 +1,22 @@
 {% extends "base.html" %}
 {% block content %}
-    <h1 class="text-3xl font-bold">Todos os Produtos</h1>
+    <div class="flex justify-between items-center">
+        <h1 class="text-3xl font-bold">Todos os Produtos</h1>
+        <form method="GET" action="{{ url_for('main.home') }}">
+            <input type="hidden" name="search" value="{{ search_query or '' }}">
+            <select name="city" onchange="this.form.submit()" class="py-2 px-4 border rounded-md">
+                <option value="">Todas as Cidades</option>
+                <option value="Restinga Sêca" {% if city_filter == 'Restinga Sêca' %}selected{% endif %}>Restinga Sêca</option>
+                <option value="Agudo" {% if city_filter == 'Agudo' %}selected{% endif %}>Agudo</option>
+                <option value="Nova Palma" {% if city_filter == 'Nova Palma' %}selected{% endif %}>Nova Palma</option>
+                <option value="Santa Maria" {% if city_filter == 'Santa Maria' %}selected{% endif %}>Santa Maria</option>
+            </select>
+        </form>
+    </div>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
         {% for product in products %}
             <div class="bg-white shadow-md rounded-lg overflow-hidden">
-                <a href="{{ url_for('product', product_id=product.id) }}">
+                <a href="{{ url_for('main.product', product_id=product.id) }}">
                     <img class="h-56 w-full object-cover" src="{{ url_for('static', filename='product_pics/' + product.image_file) }}" alt="{{ product.title }}">
                 </a>
                 <div class="p-4">

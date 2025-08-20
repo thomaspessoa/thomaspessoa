@@ -1,7 +1,8 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed
-from wtforms import StringField, PasswordField, SubmitField, BooleanField, TextAreaField, FloatField, RadioField
+from wtforms import StringField, PasswordField, SubmitField, BooleanField, TextAreaField, FloatField, RadioField, SelectField
 from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError, InputRequired
+from marketplace.models import User
 
 
 class RegistrationForm(FlaskForm):
@@ -15,13 +16,11 @@ class RegistrationForm(FlaskForm):
     submit = SubmitField('Cadastrar')
 
     def validate_username(self, username):
-        from app import User
         user = User.query.filter_by(username=username.data).first()
         if user:
             raise ValidationError('Este nome de usuário já está em uso. Por favor, escolha outro.')
 
     def validate_email(self, email):
-        from app import User
         user = User.query.filter_by(email=email.data).first()
         if user:
             raise ValidationError('Este email já está em uso. Por favor, escolha outro.')
@@ -40,6 +39,7 @@ class ProductForm(FlaskForm):
     description = TextAreaField('Descrição', validators=[DataRequired()])
     price = FloatField('Preço', validators=[DataRequired()])
     phone_number = StringField('Telefone (WhatsApp)', validators=[DataRequired()])
+    city = SelectField('Cidade', choices=[('Restinga Sêca', 'Restinga Sêca'), ('Agudo', 'Agudo'), ('Nova Palma', 'Nova Palma'), ('Santa Maria', 'Santa Maria')], validators=[DataRequired()])
     picture = FileField('Foto do Produto', validators=[FileAllowed(['jpg', 'png'])])
     submit = SubmitField('Anunciar')
 
