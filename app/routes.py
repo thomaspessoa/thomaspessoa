@@ -64,6 +64,10 @@ def save_picture(form_picture):
     _, f_ext = os.path.splitext(form_picture.filename)
     picture_fn = random_hex + f_ext
     picture_path = os.path.join(current_app.root_path, 'static/uploads', picture_fn)
+
+    # Create the uploads directory if it doesn't exist
+    os.makedirs(os.path.dirname(picture_path), exist_ok=True)
+
     form_picture.save(picture_path)
     return picture_fn
 
