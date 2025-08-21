@@ -23,6 +23,7 @@
                     <h2 class="text-lg font-bold text-gray-800">{{ product.title }}</h2>
                     <p class="text-gray-600">R$ {{ "%.2f"|format(product.price) }}</p>
                     <p class="text-sm text-gray-500">Vendido por: {{ product.author.username }}</p>
+                    <p class="text-sm text-gray-500 mt-1">Cidade: {{ product.city }}</p>
                 </div>
             </div>
         {% endfor %}

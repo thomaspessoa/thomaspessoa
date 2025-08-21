@@ -40,7 +40,7 @@ class ProductForm(FlaskForm):
     price = FloatField('Preço', validators=[DataRequired()])
     phone_number = StringField('Telefone (WhatsApp)', validators=[DataRequired()])
     city = SelectField('Cidade', choices=[('Restinga Sêca', 'Restinga Sêca'), ('Agudo', 'Agudo'), ('Nova Palma', 'Nova Palma'), ('Santa Maria', 'Santa Maria')], validators=[DataRequired()])
-    picture = FileField('Foto do Produto', validators=[FileAllowed(['jpg', 'png'])])
+    picture = FileField('Foto do Produto', validators=[DataRequired(), FileAllowed(['jpg', 'png'])])
     submit = SubmitField('Anunciar')
 
 
