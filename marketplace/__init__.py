@@ -1,3 +1,4 @@
+import os
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
@@ -20,5 +21,8 @@ def create_app():
 
     from marketplace.routes import main
     app.register_blueprint(main)
+
+    with app.app_context():
+        os.makedirs(os.path.join(app.root_path, 'static', 'product_pics'), exist_ok=True)
 
     return app
