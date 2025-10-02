@@ -1,0 +1,16 @@
+body {
+    font-family: sans-serif;
+    margin: 2em;
+}
+
+#movie-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1em;
+}
+
+.movie {
+    border: 1px solid #ccc;
+    padding: 1em;
+    border-radius: 5px;
+}
